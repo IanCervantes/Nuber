@@ -7,6 +7,10 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import kotlinx.android.synthetic.main.fragment_nuber_products.*
 
 
@@ -22,7 +26,7 @@ import kotlinx.android.synthetic.main.fragment_nuber_products.*
 class NuberProductsFragment : Fragment() {
     // TODO: Rename and change types of parameters
 
-    private val salads = listOf<Salad>(Salad("pollo", "Best", "899"))
+    private val salads = listOf(Salad("pollo", "Best", "899"))
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,9 +45,24 @@ class NuberProductsFragment : Fragment() {
 
         list_recycler_view.apply {
             layoutManager = LinearLayoutManager(activity)
-            adapter = NuberProductsAdapter(salads)
+            adapter = NuberProductsAdapter(mutableListOf<Salad>())
         }
+        getProduct()
     }
-
+    private fun getProduct(){
+        val refFirebase=FirebaseDatabase.getInstance().getReference("/salads")
+        refFirebase.addValueEventListener(object:ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+            }
+            override fun onDataChange(p0: DataSnapshot) {
+                val lista= mutableListOf<Salad>()
+                p0.children.forEach{
+                    val producto=it.getValue(Salad::class.java)
+                    lista.add(producto!!)
+                }
+                list_recycler_view.adapter=NuberProductsAdapter(lista)
+            }
+        })
+    }
 
 }
